@@ -1,97 +1,124 @@
-<div class='header ui-widget-header'><?php eT("Bounce settings"); ?></div>
-<div id='bouncesettingsdiv'>
-<?php
-    /* Script for disable some setting */
-    App()->getClientScript()->registerScriptFile(Yii::app()->getConfig('adminscripts') . "tokenbounce.js");
-    App()->getClientScript()->registerScript('bounceSettings',"hideShowParameters();",CClientScript::POS_END);
+<div class='side-body <?php echo getSideBodyClass(false); ?>'>
+    <h3><?php eT("Bounce settings"); ?></h3>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id='bouncesettingsdiv'>
+                <?php echo CHtml::form(array("admin/tokens/sa/bouncesettings/surveyid/$surveyid"), 'post',array('class'=>'form-core settingswidget ','id'=>'bouncesettings','name'=>'frmeditquestion')); ?>
 
-    $this->widget('ext.SettingsWidget.SettingsWidget', array(
-        'id'=>'bouncesettings',
-        //'title'=>gt("Bounce settings"),
-        'action' => array('admin/tokens', 'sa'=>'bouncesettings','surveyid'=>$surveyid),
-        'formHtmlOptions'=>array(
-            'class'=>'form-core',
-        ),
-        'inlist'=>true,
-        'settings' => array(
-            'bounce_email'=>array(
-                'type'=>'email',
-                'label'=>gT('Survey bounce email'),
-                'htmlOptions'=>array(
-                    'size'=>50,
-                ),
-                'current'=>$settings['bounce_email'],
-            ),
-            'bounceprocessing'=>array(
-                'type'=>'select',
-                'options'=>array(
-                    'N'=>gT("None"),
-                    'L'=>gT("Use settings below"),
-                    'G'=>gT("Use global settings"),
-                ),
-                'events'=>array(
-                    'change'=>'js: function(e) { hideShowParameters(); }',
-                ),
-                'label'=>gT('Bounce settings to be used'),
-                'current'=>$settings['bounceprocessing'],
-            ),
-            'bounceaccounttype'=>array(
-                'type'=>'select',
-                'options'=>array(
-                    'IMAP'=>gT("IMAP"),
-                    'POP'=>gT("POP"),
-                ),
-                'label'=>gT('Server type'),
-                'current'=>$settings['bounceaccounttype'],
-            ),
-            'bounceaccounthost'=>array(
-                'type'=>'string',
-                'label'=>gT('Server name & port'),
-                'htmlOptions'=>array(
-                    'size'=>50,
-                ),
-                'current'=>$settings['bounceaccounthost'],
-            ),
-            'bounceaccountuser'=>array(
-                'type'=>'string',
-                'label'=>gT('User name'),
-                'htmlOptions'=>array(
-                    'size'=>50,
-                ),
-                'current'=>$settings['bounceaccountuser'],
-            ),
-            'bounceaccountpass'=>array(
-                'type'=>'password',
-                'label'=>gT('Password'),
-                'htmlOptions'=>array(
-                    'size'=>50,
-                ),
-                'current'=>$settings['bounceaccountpass'],
-            ),
-            'bounceaccountencryption'=>array(
-                'type'=>'select',
-                'options'=>array(
-                    'Off'=>gT("None"),
-                    'SSL'=>gT("SSL"),
-                    'TLS'=>gT("TLS"),
-                ),
-                'label'=>gT('Encryption type'),
-                'current'=>$settings['bounceaccountencryption'],
-                'default'=>'Off',
-            ),
-        ),
-        'buttons' => array(
-            gT('Save bounce settings')=>array(
-                'type'=>'submit',
-                'htmlOptions'=>array(
-                    'name'=>'save',
-                    'value'=>'save',
-                ),
-            ),
-            gT('Cancel') => array(
-                'type' => 'link',
-                'href' => App()->createUrl('admin/tokens',array("sa"=>"index","surveyid"=>$surveyid)),
-            )
-        )
-    ));
-?>
+                        <div class="settings-list">
+
+                            <!-- Survey bounce email -->
+                            <div class="form-group setting control-group setting-email">
+                                <label class="default control-label" for="bounce_email">
+                                    <?php eT('Survey bounce email address:'); ?>
+                                </label>
+                                <div class="default controls">
+                                    <input class='form-control' size="50" type="email" value="<?php echo $settings['bounce_email'];?>" name="bounce_email" id="bounce_email" />
+                                </div>
+                            </div>
+
+                            <!-- Bounce settings to be used -->
+                            <div class="form-group setting control-group setting-select">
+                                <label class="default control-label" for="bounceprocessing">
+                                    <?php eT('Used bounce settings:');?>
+                                </label>
+                                <div class="default controls">
+                                    <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                                        'name' => 'bounceprocessing',
+                                        'value'=> $settings['bounceprocessing'] ,
+                                        'selectOptions'=>array(
+                                            "N"=>gT("None",'unescaped'),
+                                            "L"=>gT("Use settings below",'unescaped'),
+                                            "G"=>gT("Use global settings",'unescaped')
+                                        )
+                                    ));?>
+                                </div>
+                            </div>
+
+                            <div id="bounceparams">
+
+                            <!-- Server type -->
+                            <div class=" form-group setting control-group setting-select">
+                                <label class="default control-label" for="bounceaccounttype">
+                                    <?php eT("Server type:"); ?>
+                                </label>
+                                <div class="default controls">
+                                    <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                                        'name' => 'bounceaccounttype',
+                                        'value'=> $settings['bounceaccounttype'] ,
+                                        'selectOptions'=>array(
+                                            "IMAP"=>gT("IMAP",'unescaped'),
+                                            "POP"=>gT("POP",'unescaped')
+                                        )
+                                    ));?>
+                                </div>
+                            </div>
+
+                            <!-- Server name port -->
+                            <div class=" form-group setting control-group setting-string">
+                                <label class="default control-label" for="bounceaccounthost">
+                                    <?php eT('Server name & port:'); ?>
+                                </label>
+                                <div class="default controls">
+                                    <input size="50" type="text" value="<?php echo $settings['bounceaccounthost']; ?>" name="bounceaccounthost" id="bounceaccounthost" />
+                                </div>
+                            </div>
+
+
+
+
+                            <!-- User name -->
+                            <div class=" form-group setting control-group setting-string">
+                                <label class="default control-label" for="bounceaccountuser">
+                                    <?php eT('User name:'); ?>
+                                </label>
+                                <div class="default controls">
+                                    <input size="50" type="text" value="<?php echo $settings['bounceaccountuser'];?>" name="bounceaccountuser" id="bounceaccountuser" />
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class=" form-group setting control-group setting-password">
+                                <label class="default control-label" for="bounceaccountpass">
+                                    <?php eT('Password:'); ?>
+                                </label>
+
+                                <div class="default controls">
+                                    <input autocomplete="off" size="50" type="password" value="<?php echo $settings['bounceaccountpass'];?>" name="bounceaccountpass" id="bounceaccountpass" />
+                                </div>
+                            </div>
+
+                            <!-- Encryption type  -->
+                            <div class=" form-group setting control-group setting-select">
+                                <label class="default control-label" for="bounceaccountencryption">
+                                    <?php eT('Encryption type:'); ?>
+                                </label>
+                                <div class="default controls">
+                                    <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                                        'name' => 'bounceaccountencryption',
+                                        'value'=> $settings['bounceaccountencryption'] ,
+                                        'selectOptions'=>array(
+                                            "Off"=>gT("Off",'unescaped'),
+                                            "SSL"=>gT("SSL",'unescaped'),
+                                            "TLS"=>gT("TLS",'unescaped')
+                                        )
+                                    ));?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- buttons -->
+                    <div class="buttons control-group  hidden">
+                        <button name="save" value="save" class="btn" type="submit">Save bounce settings</button>
+                        <a class="btn btn-link button" href="/LimeSurveyNext/index.php/admin/tokens?sa=index&amp;surveyid=274928">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div> <!-- bouncesettingsdiv -->
+        </div> <!-- col -->
+    </div> <!-- Row -->
+</div> <!-- Side body -->
+
+<?php App()->getClientScript()->registerScriptFile( App()->getConfig('adminscripts') . 'tokenbounce.js'); ?>

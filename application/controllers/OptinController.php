@@ -1,4 +1,6 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) {
+    exit('No direct script access allowed');
+}
 /*
  * LimeSurvey
  * Copyright (C) 2013 The LimeSurvey Project Team / Carsten Schmitz
@@ -19,12 +21,13 @@
  *
  * @package LimeSurvey
  * @copyright 2011
-  * @access public
+ * @access public
  */
-class OptinController extends LSYii_Controller {
+class OptinController extends LSYii_Controller
+{
 
-     public $layout = 'bare';
-     public $defaultAction = 'tokens';
+        public $layout = 'bare';
+        public $defaultAction = 'tokens';
 
     function actiontokens($surveyid, $token, $langcode = '')
     {
@@ -33,84 +36,73 @@ class OptinController extends LSYii_Controller {
         $sLanguageCode = $langcode;
         $iSurveyID = $surveyid;
         $sToken = $token;
-        $sToken = sanitize_token($sToken);
+        $sToken = Token::sanitizeToken($sToken);
 
-        if (!$iSurveyID)
-        {
+        if (!$iSurveyID) {
             $this->redirect(array('/'));
         }
-        $iSurveyID = (int)$iSurveyID;
+        $iSurveyID = (int) $iSurveyID;
 
         //Check that there is a SID
         // Get passed language from form, so that we dont loose this!
-        if (!isset($sLanguageCode) || $sLanguageCode == "" || !$sLanguageCode)
-        {
+        if (!isset($sLanguageCode) || $sLanguageCode == "" || !$sLanguageCode) {
             $sBaseLanguage = Survey::model()->findByPk($iSurveyID)->language;
-        }
-        else
-        {
+        } else {
             $sBaseLanguage = sanitize_languagecode($sLanguageCode);
         }
 
         Yii::app()->setLanguage($sBaseLanguage);
 
-        $aSurveyInfo=getSurveyInfo($iSurveyID,$sBaseLanguage);
+        $aSurveyInfo = getSurveyInfo($iSurveyID, $sBaseLanguage);
 
-        if ($aSurveyInfo == false || !tableExists("{{tokens_{$iSurveyID}}}"))
-        {
+        if ($aSurveyInfo == false || !tableExists("{{tokens_{$iSurveyID}}}")) {
             throw new CHttpException(404, "This survey does not seem to exist. It may have been deleted or the link you were given is outdated or incorrect.");
-        }
-        else
-        {
-            LimeExpressionManager::singleton()->loadTokenInformation($iSurveyID,$token,false);
+        } else {
+            LimeExpressionManager::singleton()->loadTokenInformation($iSurveyID, $token, false);
             $oToken = Token::model($iSurveyID)->findByAttributes(array('token' => $token));
 
-            if (!isset($oToken))
-            {
+            if (!isset($oToken)) {
                 $sMessage = gT('You are not a participant in this survey.');
-            }
-            else
-            {
-                if ($oToken->emailstatus =='OptOut')
-                {
+            } else {
+                if ($oToken->emailstatus == 'OptOut') {
                     $oToken->emailstatus = 'OK';
                     $oToken->save();
                     $sMessage = gT('You have been successfully added back to this survey.');
-                }
-                elseif ($oToken->emailstatus == 'OK')
-                {
+                } elseif ($oToken->emailstatus == 'OK') {
                     $sMessage = gT('You are already a part of this survey.');
-                }
-                else
-                {
+                } else {
                     $sMessage = gT('You have been already removed from this survey.');
                 }
             }
         }
 
-        //PRINT COMPLETED PAGE
-        if (!$aSurveyInfo['templatedir'])
-        {
-            $sTemplate=getTemplatePath(Yii::app()->getConfig("defaulttemplate"));
-        }
-        else
-        {
-            $sTemplate=getTemplatePath($aSurveyInfo['templatedir']);
-        }
-        $this->_renderHtml($sMessage,$sTemplate,$aSurveyInfo);
+        $this->renderHtml($sMessage, $aSurveyInfo, $iSurveyID);
     }
 
-    private function _renderHtml($html,$thistpl, $aSurveyInfo)
+    /**
+     * Render stuff
+     *
+     * @param string $html
+     * @param array $aSurveyInfo
+     * @param int $iSurveyID
+     * @return void
+     */
+    private function renderHtml($html, $aSurveyInfo, $iSurveyID)
     {
-        sendCacheHeaders();
-        doHeader();
-        $aSupportData=array('thissurvey'=>$aSurveyInfo);
-        echo templatereplace(file_get_contents($thistpl.DIRECTORY_SEPARATOR.'startpage.pstpl'),array(), $aSupportData);
-        $aData['html'] = $html;
-        $aData['thistpl'] = $thistpl;
-        $this->render('/opt_view',$aData);
-        echo templatereplace(file_get_contents($thistpl.DIRECTORY_SEPARATOR.'endpage.pstpl'),array(), $aSupportData);
-        doFooter();
-    }
+        $survey = Survey::model()->findByPk($iSurveyID);
 
+        $aSurveyInfo['include_content'] = 'optin';
+        $aSurveyInfo['optin_message'] = $html;
+        Template::model()->getInstance('', $iSurveyID);
+
+        Yii::app()->twigRenderer->renderTemplateFromFile(
+            "layout_global.twig",
+            array(
+                'oSurvey'     => $survey,
+                'aSurveyInfo' => $aSurveyInfo
+            ),
+            false
+        );
+        Yii::app()->end();
+    }
 }

@@ -1,4 +1,6 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) {
+    exit('No direct script access allowed');
+}
 /*
 | -------------------------------------------------------------------
 | DATABASE CONNECTIVITY SETTINGS
@@ -30,21 +32,19 @@ return array(
             'password' => 'somepassword',
             'charset' => 'utf8',
             'tablePrefix' => 'lime_',
-            'initSQLs'=>array('SET DATEFORMAT ymd;','SET QUOTED_IDENTIFIER ON;'),
+            'initSQLs'=>array('SET DATEFORMAT ymd;', 'SET QUOTED_IDENTIFIER ON;'),
         ),
 
         // Uncomment the following line if you need table-based sessions
         // 'session' => array (
-            // 'class' => 'system.web.CDbHttpSession',
+            // 'class' => 'application.core.web.DbHttpSession',
             // 'connectionID' => 'db',
             // 'sessionTableName' => '{{sessions}}',
         // ),
 
         'urlManager' => array(
             'urlFormat' => 'get',
-            'rules' => array(
-            // You can put your own rules here
-            ),
+            'rules' => require('routes.php'),
             'showScriptName' => true,
         ),
 
@@ -54,9 +54,9 @@ return array(
     // debug: Set this to 1 if you are looking for errors. If you still get no errors after enabling this
     // then please check your error-logs - either in your hosting provider admin panel or in some /logs directory
     // on your webspace.
-    // LimeSurvey developers: Set this to 2 to additionally display STRICT PHP error messages and get full access to standard templates
+    // LimeSurvey developers: Set this to 2 to additionally display STRICT PHP error messages and get full access to standard themes
         'debug'=>0,
-        'debugsql'=>0, // Set this to 1 to enanble sql logging, only active when debug = 2
+        'debugsql'=>0 // Set this to 1 to enanble sql logging, only active when debug = 2
     )
 );
 /* End of file config.php */

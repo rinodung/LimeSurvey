@@ -4,6 +4,7 @@
  * Modified for Yii Framework:
  * - Renamed "autocomplete" to "legacyautocomplete".
  * - Fixed IE8 problems (mario.ffranco).
+ * - Fixed compatibility for jQuery 1.9+ (.browser is deprecated)
  *
  * Copyright (c) 2009 Jörn Zaefferer
  *
@@ -84,7 +85,7 @@ $.Autocompleter = function(input, options) {
 	var blockSubmit;
 	
 	// prevent form submit in opera when selecting with return key
-	$.browser.opera && $(input.form).bind("submit.autocomplete", function() {
+	(navigator.userAgent.match(/OPERA|OPR\//i) !== null) && $(input.form).on("submit.autocomplete", function() {
 		if (blockSubmit) {
 			blockSubmit = false;
 			return false;
@@ -92,7 +93,7 @@ $.Autocompleter = function(input, options) {
 	});
 	
 	// only opera doesn't trigger keydown multiple times while pressed, others don't work with keypress at all
-	$input.bind(($.browser.opera ? "keypress" : "keydown") + ".autocomplete", function(event) {
+	$input.bind(((navigator.userAgent.match(/OPERA|OPR\//i) !== null) ? "keypress" : "keydown") + ".autocomplete", function(event) {
 		// a keypress means the input has focus
 		// avoids issue where input had focus before the autocomplete was applied
 		hasFocus = 1;
@@ -171,7 +172,7 @@ $.Autocompleter = function(input, options) {
 		if ( hasFocus++ > 1 && !select.visible() ) {
 			onChange(0, true);
 		}
-	}).bind("search", function() {
+	}).on("search", function() {
 		// TODO why not just specifying both arguments?
 		var fn = (arguments.length > 1) ? arguments[1] : null;
 		function findValueCallback(q, data) {
@@ -190,14 +191,14 @@ $.Autocompleter = function(input, options) {
 		$.each(trimWords($input.val()), function(i, value) {
 			request(value, findValueCallback, findValueCallback);
 		});
-	}).bind("flushCache", function() {
+	}).on("flushCache", function() {
 		cache.flush();
-	}).bind("setOptions", function() {
+	}).on("setOptions", function() {
 		$.extend(options, arguments[1]);
 		// if we've updated the data, repopulate
 		if ( "data" in arguments[1] )
 			cache.populate();
-	}).bind("unautocomplete", function() {
+	}).on("unautocomplete", function() {
 		select.unbind();
 		$input.unbind();
 		$(input.form).unbind(".autocomplete");
@@ -738,7 +739,7 @@ $.Autocompleter.Select = function (options, input, select, config) {
 					overflow: 'auto'
 				});
 				
-                if($.browser.msie && typeof document.body.style.maxHeight === "undefined") {
+                if(navigator.userAgent.match(/MSIE/i) !== null && typeof document.body.style.maxHeight === "undefined") {
 					var listHeight = 0;
 					listItems.each(function() {
 						listHeight += this.offsetHeight;

@@ -1,10 +1,10 @@
 <?php
-namespace ls\pluginmanager;
+namespace LimeSurvey\PluginManager;
 use \User;
 use LSAuthResult;
-use Permission;
 
-abstract class AuthPluginBase extends PluginBase {
+abstract class AuthPluginBase extends PluginBase
+{
     
     /**
      * These constants reflect the error codes to be used by the identity, they 
@@ -53,7 +53,7 @@ abstract class AuthPluginBase extends PluginBase {
     }
 
     /**
-     * Set username and password
+     * Set username and password by post request
      *
      * @return null
      */
@@ -62,9 +62,21 @@ abstract class AuthPluginBase extends PluginBase {
         // Here we handle post data
         $request = $this->api->getRequest();
         if ($request->getIsPostRequest()) {
-            $this->setUsername( $request->getPost('user'));
+            $this->setUsername($request->getPost('user'));
             $this->setPassword($request->getPost('password'));
         }
+    }
+
+    /**
+     * Set username and password by event
+     *
+     * @return null
+     */
+    public function remoteControlLogin()
+    {
+        $event = $this->getEvent();
+        $this->setUsername($event->get('username'));
+        $this->setPassword($event->get('password'));
     }
 
     /**
@@ -79,7 +91,7 @@ abstract class AuthPluginBase extends PluginBase {
         $identity = $this->getEvent()->get('identity');
         $identity->id = $user->uid;
         $identity->user = $user;
-        $identity = $this->getEvent()->set('identity', $identity);
+        $this->getEvent()->set('identity', $identity);
         $event->set('result', new LSAuthResult(self::ERROR_NONE));
         
         return $this;
@@ -109,7 +121,7 @@ abstract class AuthPluginBase extends PluginBase {
      */
     public function setAuthPlugin()
     {
-        $event = $this->getEvent();
+        $this->getEvent();
         $identity = $this->getEvent()->get('identity');
         $identity->plugin = get_class($this);
         $this->getEvent()->stop();
@@ -151,31 +163,5 @@ abstract class AuthPluginBase extends PluginBase {
         $event->set('identity', $identity);
         
         return $this;
-    }
-
-    /**
-     * Set the username to use for authentication
-     *
-     * @param string $sAuthType
-     */
-    protected function setAuthPermission($iNewUID,$sAuthType)
-    {
-        $aPerm = array(
-            'entity_id' => 0,
-            'entity' => 'global',
-            'uid' => $iNewUID,
-            'permission' => $sAuthType,
-            'create_p' => 0,
-            'read_p' => 1,
-            'update_p' => 0,
-            'delete_p' => 0,
-            'import_p' => 0,
-            'export_p' => 0
-        );
-
-        $oPermission = new Permission;
-        foreach ($aPerm as $k => $v)
-            $oPermission->$k = $v;
-        $oPermission->save();
     }
 }

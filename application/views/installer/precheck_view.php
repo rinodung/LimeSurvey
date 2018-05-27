@@ -25,7 +25,7 @@ function dirReport($dir, $write)
 
     if ($error)
     {
-       return '<font color="red">'.$a.' &amp; '.$b.'</font>';
+       return '<h3 class="label label-danger" style="font-size: 100%;">'.$a.' &amp; '.$b.'</h3>';
     }
     else
     {
@@ -35,16 +35,15 @@ function dirReport($dir, $write)
 
 ?>
 <div class="row">
-    <div class="span3">
+    <div class="col-md-3">
         <?php $this->renderPartial('/installer/sidebar_view', compact('progressValue', 'classesForStep')); ?>
     </div>
-    <div class="span9">
+    <div class="col-md-9">
         <h2><?php echo $title; ?></h2>
         <p><?php echo $descp; ?></p>
-        <fieldset>
         <legend><?php eT("Minimum requirements"); ?></legend>
 
-        <table class='table-striped'>
+        <table class='table-striped table'>
         <thead>
         <tr>
                <th>&nbsp;</th>
@@ -55,15 +54,15 @@ function dirReport($dir, $write)
         <tbody>
         <tr>
                <td><?php eT("PHP version"); ?></td>
-               <td>5.3.0+</td>
+               <td>5.5.9+</td>
                <td><?php if (isset($verror) && $verror) { ?><span style='font-weight:bold; color: red'><?php eT("Outdated"); ?>: <?php echo $phpVersion; ?></span>
                <?php } else { ?><?php echo $phpVersion ; ?> <?php } ?></td>
         </tr>
         <tr>
                <td><?php eT("Minimum memory available"); ?></td>
-               <td>64MB</td>
+               <td>128</td>
                <td><?php
-               if (isset($bMemoryError) && $bMemoryError) { ?><span style='font-weight:bold; color: red'><?php eT("Too low"); ?>: <?php echo $convertPHPSizeToBytes(ini_get('memory_limit'))/1024/1024; ?>MB</span>
+               if (isset($bMemoryError) && $bMemoryError) { ?><span style='font-weight:bold; color: red'><?php eT("Too low"); ?>: <?php echo convertPHPSizeToBytes(ini_get('memory_limit'))/1024/1024; ?>MB</span>
                <?php } elseif (ini_get('memory_limit')=='-1') eT("Unlimited"); else { echo convertPHPSizeToBytes(ini_get('memory_limit'))/1024/1024; echo ' MB';} ?></td>
         </tr>
         <tr>
@@ -74,12 +73,17 @@ function dirReport($dir, $write)
         </tr>
         <tr>
                <td><?php eT("PHP mbstring library"); ?></td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Yes" /></td>
+               <td><span class='fa fa-check text-success' alt="Yes"></span></td>
                <td><?php echo $mbstringPresent; ?></td>
         </tr>
         <tr>
+               <td><?php eT("PHP zlib library");?></td>
+               <td><span class='fa fa-check text-success' alt="Yes"></span></td>
+               <td><?php echo $zlibPresent ; ?></td>
+        </tr>
+        <tr>
                <td><?php eT("PHP/PECL JSON library"); ?></td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Yes" /></td>
+               <td><span class='fa fa-check text-success' alt="Yes"></span></td>
                <td><?php echo $bJSONPresent; ?></td>
         </tr>
         <tr>
@@ -99,15 +103,14 @@ function dirReport($dir, $write)
         </tr>
         <tr>
                <td><?php eT("Session writable"); ?></td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
+               <td><span class='fa fa-check text-success' alt="Yes"></span></td>
                <td><?php echo $sessionWritableImg; if (!$sessionWritable) echo '<br/>session.save_path: ' . session_save_path(); ?></td>
         </tr>
         </tbody>
         </table>
-        </fieldset>
-        <fieldset>
+        <br/>
         <legend><?php eT('Optional modules'); ?></legend>
-        <table class='table-striped'>
+        <table class='table-striped table'>
         <thead>
             <tr>
                    <th>&nbsp;</th>
@@ -117,45 +120,39 @@ function dirReport($dir, $write)
         </thead>
         <tbody>
         <tr>
-               <td>PHP GD library</td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
+               <td><?php eT("PHP GD library"); ?></td>
+               <td><span class='fa fa-check text-success' alt="Check"></span></td>
                <td><?php echo $gdPresent ; ?></td>
         </tr>
         <tr>
-               <td>PHP LDAP library</td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
+               <td><?php eT("PHP LDAP library"); ?></td>
+               <td><span class='fa fa-check text-success' alt="Check"></span></td>
                <td><?php echo $ldapPresent ; ?></td>
         </tr>
         <tr>
-               <td>PHP zip library</td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
+               <td><?php eT("PHP zip library"); ?></td>
+               <td><span class='fa fa-check text-success' alt="Check"></span></td>
                <td><?php echo $zipPresent ; ?></td>
         </tr>
         <tr>
-               <td>PHP zlib library</td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
-               <td><?php echo $zlibPresent ; ?></td>
-        </tr>
-        <tr>
-               <td>PHP imap library</td>
-               <td><img src="<?php echo Yii::app()->baseUrl; ?>/installer/images/tick-right.png" alt="Check" /></td>
+               <td><?php eT("PHP imap library"); ?></td>
+               <td><span class='fa fa-check text-success' alt="Check"></span></td>
                <td><?php echo $bIMAPPresent ; ?></td>
         </tr>
         </tbody>
 
         </table>
-        </fieldset>
         <div class="row navigator">
-            <div class="span3" >
-                <input class="btn" type="button" value="<?php eT('Previous'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/license"); ?>', '_top')" />
+            <div class="col-md-4" >
+                <input id="ls-previous" class="btn btn-default" type="button" value="<?php eT('Previous'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/license"); ?>', '_top')" />
             </div>
-            <div class="span3">
-                <input class="btn" type="button" value="<?php eT('Check again'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/precheck"); ?>', '_top')" />
+            <div class="col-md-4">
+                <input id="ls-check-again" class="btn btn-default" type="button" value="<?php eT('Check again'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/precheck"); ?>', '_top')" />
             </div>
-            <div class="span3">
+            <div class="col-md-4">
 
                 <?php if (isset($next) && $next== TRUE) { ?>
-                <input class="btn" type="button" value="<?php eT('Next'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/database"); ?>', '_top')" />
+                <input id="ls-next" class="btn btn-default" type="button" value="<?php eT('Next'); ?>" onclick="javascript: window.open('<?php echo $this->createUrl("installer/database"); ?>', '_top')" />
                 <?php } ?>
             </div>
         </div>

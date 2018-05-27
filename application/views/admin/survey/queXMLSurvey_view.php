@@ -1,189 +1,184 @@
-    <br /><div class='messagebox ui-corner-all' style="width: 100%;">
-        <div class='header ui-widget-header'><?php eT("queXML PDF export"); echo " ($surveyid)" ;?></div>
-             <?php echo CHtml::form(array("admin/export/sa/quexml/surveyid/{$surveyid}/"), 'post', array('class'=>'form44')); ?>
-            <ul>
-                <li><label for='save_language'><?php eT("Language selection"); ?></label>
-                    <select name='save_language'>
+<div class='side-body <?php echo getSideBodyClass(false); ?>'>
+    <div class='row'>
+        <h3>
+            <?php eT("queXML PDF export");?>
+        </h3>
+        <?php echo CHtml::form(array("admin/export/sa/quexml/surveyid/{$surveyid}/"), 'post'); ?>
+        <div class="form-group row"><label class=" control-label" for='save_language'><?php eT("Language selection"); ?></label>
+            <div class="">
+                <select class="form-control" name='save_language'>
                     <?php foreach ($slangs as $lang)
                     {
                         if ($lang == $baselang) { ?>
-                           <option value='<?php echo $lang; ?>' selected='selected'><?php echo getLanguageNameFromCode($lang,false); ?></option>
-                        <?php }
+                            <option value='<?php echo $lang; ?>' selected='selected'><?php echo getLanguageNameFromCode($lang,false); ?></option>
+                            <?php }
                         else { ?>
                             <option value='<?php echo $lang; ?>'><?php echo getLanguageNameFromCode($lang,false); ?></option>
                             <?php }
                     } ?>
-                    </select>
-                </li>
-                
-                 <li><label for='queXMLStyle'><?php eT("Style:"); ?></label>
-            
-            <textarea rows="10" cols="80" id='queXMLStyle' name='queXMLStyle'><?php echo $queXMLStyle; ?> </textarea>
-        </li>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLStyle'><?php eT("Style:"); ?></label>
+            <div class="">
+
+                <textarea class="form-control" rows="10" id='queXMLStyle' name='queXMLStyle'><?php echo $queXMLStyle; ?> </textarea>
+            </div>
+        </div>
 
 
-        <li><label for='queXMLAllowSplittingSingleChoiceHorizontal'><?php eT("Allow array style questions to be split over multiple pages"); ?></label>
-            <select id='queXMLAllowSplittingSingleChoiceHorizontal' name='queXMLAllowSplittingSingleChoiceHorizontal'>
-                <option value=1
-                <?php if ($queXMLAllowSplittingSingleChoiceHorizontal == 1) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("Yes"); ?></option>
-                <option value=0
-                <?php if ($queXMLAllowSplittingSingleChoiceHorizontal == 0) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("No"); ?></option>
-            </select>           
+        <div class="form-group row"><label class=" control-label" for='queXMLAllowSplittingSingleChoiceHorizontal'><?php eT("Allow array style questions to be split over multiple pages"); ?></label>
+            <div class="">
+                <?php $this->widget('yiiwheels.widgets.switch.WhSwitch', array(
+                    'name' => 'queXMLAllowSplittingSingleChoiceHorizontal',
+                    'value'=> $queXMLAllowSplittingSingleChoiceHorizontal == 1,
+                    'onLabel'=>gT('Yes'),
+                    'offLabel'=>gT('No')));
+                ?>
+            </div>
+        </div>
 
-        </li>
+        <div class="form-group row"><label class=" control-label" for='queXMLAllowSplittingSingleChoiceVertical'><?php eT("Allow single choice questions to be split over multiple pages"); ?></label>
+            <div class="">
 
-        <li><label for='queXMLAllowSplittingSingleChoiceVertical'><?php eT("Allow single choice questions to be split over multiple pages"); ?></label>
+                <?php $this->widget('yiiwheels.widgets.switch.WhSwitch', array(
+                    'name' => 'queXMLAllowSplittingSingleChoiceVertical',
+                    'value'=> $queXMLAllowSplittingSingleChoiceVertical == 1,
+                    'onLabel'=>gT('Yes'),
+                    'offLabel'=>gT('No')));
+                ?>
+            </div>
+        </div>
 
-            <select id='queXMLAllowSplittingSingleChoiceVertical' name='queXMLAllowSplittingSingleChoiceVertical'>
-                <option value=1
-                <?php if ($queXMLAllowSplittingSingleChoiceVertical == 1) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("Yes"); ?></option>
-                <option value=0
-                <?php if ($queXMLAllowSplittingSingleChoiceVertical == 0) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("No"); ?></option>
-            </select> 
+        <div class="form-group row"><label class=" control-label" for='queXMLAllowSplittingMatrixText'><?php eT("Allow multiple short text / numeric questions to be split over multiple pages"); ?></label>
+            <div class="">
 
-        </li>
+                <?php $this->widget('yiiwheels.widgets.switch.WhSwitch', array(
+                    'name' => 'queXMLAllowSplittingMatrixText',
+                    'value'=> $queXMLAllowSplittingMatrixText == 1,
+                    'onLabel'=>gT('Yes'),
+                    'offLabel'=>gT('No')));
+                ?>
 
-        <li><label for='queXMLAllowSplittingMatrixText'><?php eT("Allow multiple short text / numeric questions to be split over multiple pages"); ?></label>
-
-            <select id='queXMLAllowSplittingMatrixText' name='queXMLAllowSplittingMatrixText'>
-                <option value=1
-                <?php if ($queXMLAllowSplittingMatrixText == 1) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("Yes"); ?></option>
-                <option value=0
-                <?php if ($queXMLAllowSplittingMatrixText == 0) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("No"); ?></option>
-            </select> 
+            </div>
+        </div>
 
 
-        </li>
+        <div class="form-group row"><label class=" control-label" for='queXMLAllowSplittingVas'><?php eT("Allow slider questions to be split over multiple pages"); ?></label>
+            <div class="">
+
+                <?php $this->widget('yiiwheels.widgets.switch.WhSwitch', array(
+                    'name' => 'queXMLAllowSplittingVas',
+                    'value'=> $queXMLAllowSplittingVas == 1,
+                    'onLabel'=>gT('Yes'),
+                    'offLabel'=>gT('No')));
+                ?>
+
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLSingleResponseAreaHeight'><?php eT("Minimum height of single choice answer boxes"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLSingleResponseAreaHeight' name='queXMLSingleResponseAreaHeight' value="<?php echo $queXMLSingleResponseAreaHeight; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLSingleResponseHorizontalHeight'><?php eT("Minimum height of subquestion items"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLSingleResponseHorizontalHeight' name='queXMLSingleResponseHorizontalHeight' value="<?php echo $queXMLSingleResponseHorizontalHeight; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLQuestionnaireInfoMargin'><?php eT("Margin before questionnaireInfo element (mm)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLQuestionnaireInfoMargin' name='queXMLQuestionnaireInfoMargin' value="<?php echo $queXMLQuestionnaireInfoMargin; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLResponseTextFontSize'><?php eT("Answer option / subquestion font size"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLResponseTextFontSize' name='queXMLResponseTextFontSize' value="<?php echo $queXMLResponseTextFontSize; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLResponseLabelFontSize'><?php eT("Answer label font size (normal)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLResponseLabelFontSize' name='queXMLResponseLabelFontSize' value="<?php echo $queXMLResponseLabelFontSize; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLResponseLabelFontSizeSmall'><?php eT("Answer label font size (small)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLResponseLabelFontSizeSmall' name='queXMLResponseLabelFontSizeSmall' value="<?php echo $queXMLResponseLabelFontSizeSmall; ?>" />
+            </div>
+        </div>
+
+        <div class="form-group row"><label class=" control-label" for='queXMLSectionHeight'><?php eT("Minimum section height (mm)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLSectionHeight' name='queXMLSectionHeight' value="<?php echo $queXMLSectionHeight; ?>" />
+            </div>
+        </div>
 
 
-        <li><label for='queXMLAllowSplittingVas'><?php eT("Allow slider questions to be split over multiple pages"); ?></label>
+        <div class="form-group row"><label class=" control-label" for='queXMLBackgroundColourSection'><?php eT("Background colour for sections (0 black - 255 white)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLBackgroundColourSection' name='queXMLBackgroundColourSection' value="<?php echo $queXMLBackgroundColourSection; ?>" />
+            </div>
+        </div>
 
-            <select id='queXMLAllowSplittingVas' name='queXMLAllowSplittingVas'>
-                <option value=1
-                <?php if ($queXMLAllowSplittingVas == 1) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("Yes"); ?></option>
-                <option value=0
-                <?php if ($queXMLAllowSplittingVas == 0) { ?>
-                            selected='selected'
-                        <?php } ?>
-                        ><?php eT("No"); ?></option>
-            </select>  
+        <div class="form-group row"><label class=" control-label" for='queXMLBackgroundColourQuestion'><?php eT("Background colour for questions (0 black - 255 white)"); ?></label>
+            <div class="col-sm-1">
+                <input class="form-control" type='text' size='10' id='queXMLBackgroundColourQuestion' name='queXMLBackgroundColourQuestion' value="<?php echo $queXMLBackgroundColourQuestion; ?>" />
+            </div>
+        </div>
 
-
-        </li>
-
-        <li><label for='queXMLSingleResponseAreaHeight'><?php eT("Minimum height of single choice answer boxes"); ?></label>
-            <input type='text' size='10' id='queXMLSingleResponseAreaHeight' name='queXMLSingleResponseAreaHeight' value="<?php echo $queXMLSingleResponseAreaHeight; ?>" />
-        </li>
-
-        <li><label for='queXMLSingleResponseHorizontalHeight'><?php eT("Minimum height of subquestion items"); ?></label>
-            <input type='text' size='10' id='queXMLSingleResponseHorizontalHeight' name='queXMLSingleResponseHorizontalHeight' value="<?php echo $queXMLSingleResponseHorizontalHeight; ?>" />
-        </li>
-
-        <li><label for='queXMLQuestionnaireInfoMargin'><?php eT("Margin before questionnaireInfo element (mm)"); ?></label>
-            <input type='text' size='10' id='queXMLQuestionnaireInfoMargin' name='queXMLQuestionnaireInfoMargin' value="<?php echo $queXMLQuestionnaireInfoMargin; ?>" />
-        </li>
-
-        <li><label for='queXMLResponseTextFontSize'><?php eT("Answer option / subquestion font size"); ?></label>
-            <input type='text' size='10' id='queXMLResponseTextFontSize' name='queXMLResponseTextFontSize' value="<?php echo $queXMLResponseTextFontSize; ?>" />
-        </li>
-
-        <li><label for='queXMLResponseLabelFontSize'><?php eT("Answer label font size (normal)"); ?></label>
-            <input type='text' size='10' id='queXMLResponseLabelFontSize' name='queXMLResponseLabelFontSize' value="<?php echo $queXMLResponseLabelFontSize; ?>" />
-        </li>
-
-        <li><label for='queXMLResponseLabelFontSizeSmall'><?php eT("Answer label font size (small)"); ?></label>
-            <input type='text' size='10' id='queXMLResponseLabelFontSizeSmall' name='queXMLResponseLabelFontSizeSmall' value="<?php echo $queXMLResponseLabelFontSizeSmall; ?>" />
-        </li>
-
-        <li><label for='queXMLSectionHeight'><?php eT("Minimum section height (mm)"); ?></label>
-            <input type='text' size='10' id='queXMLSectionHeight' name='queXMLSectionHeight' value="<?php echo $queXMLSectionHeight; ?>" />
-        </li>
+        <div class="form-group row"><label class=" control-label" for='queXMLPageOrientation'><?php eT("Page orientation:"); ?></label>
+            <div class="">
+                <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                    'name' => 'queXMLPageOrientation',
+                    'value'=> $queXMLPageOrientation ,
+                    'selectOptions'=>array(
+                        "P"=>gT("Portrait",'unescaped'),
+                        "L"=>gT("Landscape",'unescaped')
+                    )
+                ));?>
+            </div>
+        </div>
 
 
-        <li><label for='queXMLBackgroundColourSection'><?php eT("Background colour for sections (0 black - 255 white)"); ?></label>
-            <input type='text' size='10' id='queXMLBackgroundColourSection' name='queXMLBackgroundColourSection' value="<?php echo $queXMLBackgroundColourSection; ?>" />
-        </li>                
+        <div class="form-group row"><label class=" control-label" for='queXMLPageFormat'><?php eT("Page format:"); ?></label>
+            <div class="">
+                <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                    'name' => 'queXMLPageFormat',
+                    'value'=> $queXMLPageFormat ,
+                    'selectOptions'=>array(
+                        "A4"=>gT("A4",'unescaped'),
+                        "A3"=>gT("A3",'unescaped'),
+                        "USLETTER"=>gT("US Letter",'unescaped')
+                    )
+                ));?>
+            </div>
+        </div>
 
-                <li><label for='queXMLBackgroundColourQuestion'><?php eT("Background colour for questions (0 black - 255 white)"); ?></label>
-                    <input type='text' size='10' id='queXMLBackgroundColourQuestion' name='queXMLBackgroundColourQuestion' value="<?php echo $queXMLBackgroundColourQuestion; ?>" />
-                </li>
+        <div class="form-group row"><label class=" control-label" for='queXMLEdgeDetectionFormat'><?php eT("Edge detection format:"); ?></label>
+            <div class="">
+                <?php $this->widget('yiiwheels.widgets.buttongroup.WhButtonGroup', array(
+                    'name' => 'queXMLEdgeDetectionFormat',
+                    'value'=> $queXMLEdgeDetectionFormat ,
+                    'selectOptions'=>array(
+                        "lines"=>gT("Corner lines",'unescaped'),
+                        "boxes"=>gT("Corner boxes",'unescaped')
+                    )
+                ));?>
+            </div>
+        </div>
 
-                <li><label for='queXMLPageOrientation'><?php eT("Page orientation"); ?></label>
-                    <select id='queXMLPageOrientation' name='queXMLPageOrientation'>
-                        <option value='P'
-                            <?php if ($queXMLPageOrientation == "P") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("Portrait"); ?></option>
-                        <option value='L'
-                            <?php if ($queXMLPageOrientation == "L") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("Landscape"); ?></option>
-                    </select>
-                </li>
-
-
-               <li><label for='queXMLPageFormat'><?php eT("Page format"); ?></label>
-                    <select id='queXMLPageFormat' name='queXMLPageFormat'>
-                        <option value='A4'
-                            <?php if ($queXMLPageFormat == "A4") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("A4"); ?></option>
-                        <option value='USLETTER'
-                            <?php if ($queXMLPageFormat == "USLETTER") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("US Letter"); ?></option>
-                        <option value='A3'
-                            <?php if ($queXMLPageFormat == "A3") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("A3"); ?></option>
-                    </select>
-                </li>
-
-              <li><label for='queXMLEdgeDetectionFormat'><?php eT("Edge detection format"); ?></label>
-                    <select id='queXMLEdgeDetectionFormat' name='queXMLEdgeDetectionFormat'>
-                        <option value='lines'
-                            <?php if ($queXMLEdgeDetectionFormat == "lines") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("Corner lines"); ?></option>
-                        <option value='boxes'
-                            <?php if ($queXMLEdgeDetectionFormat == "boxes") { ?>
-                                selected='selected'
-                                <?php } ?>
-                            ><?php eT("Corner boxes"); ?></option>
-                   </select>
-                </li>
-
-            <input type='hidden' name='ok' value='Y' />
-            <input type='submit' value="<?php eT("queXML PDF export"); ?>" />
+        <input type='hidden' name='ok' value='Y' />
+        <input type='submit' class="btn btn-default" value="<?php eT("queXML PDF export"); ?>" />
         </form>
-             <?php echo CHtml::form(array("admin/export/sa/quexmlclear/surveyid/{$surveyid}/"), 'post', array('class'=>'form44'));
-            echo CHtml::htmlButton(gT('Reset to default settings'),array('type'=>'submit'));?>
+        <?php echo CHtml::form(array("admin/export/sa/quexmlclear/surveyid/{$surveyid}/"), 'post');
+        echo CHtml::htmlButton(gT('Reset to default settings'),array('type'=>'submit','class'=>'btn btn-default btn-xs'));?>
         </form>
-    </div><br />&nbsp;
+    </div>
+</div>

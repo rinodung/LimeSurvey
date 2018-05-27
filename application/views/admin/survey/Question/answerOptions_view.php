@@ -1,218 +1,262 @@
-<?php echo PrepareEditorScript(true, $this); ?>
-<div class='header ui-widget-header'>
-    <?php eT("Edit answer options"); ?>
-</div>
-<?php echo CHtml::form(array("admin/database"), 'post', array('id'=>'editanswersform', 'name'=>'editanswersform')); ?>
-    <input type='hidden' name='sid' value='<?php echo $surveyid; ?>' />
-    <input type='hidden' name='gid' value='<?php echo $gid; ?>' />
-    <input type='hidden' name='qid' value='<?php echo $qid; ?>' />
-    <input type='hidden' name='action' value='updateansweroptions' />
-    <input type='hidden' name='sortorder' value='' />
-    <?php $first=true; ?>
-    <script type='text/javascript'>
-        var languagecount=<?php echo count($anslangs); ?>;
-        var scalecount=<?php echo $scalecount; ?>;
-        var assessmentvisible=<?php echo $assessmentvisible?'true':'false'; ?>;
-        var newansweroption_text='<?php eT('New answer option','js'); ?>';
-        var sLabelSetName='<?php eT('Label set name','js'); ?>';
-        var strcode='<?php eT('Code','js'); ?>';
-        var strlabel='<?php eT('Label','js'); ?>';
-        var strCantDeleteLastAnswer='<?php eT('You cannot delete the last answer option.','js'); ?>';
-        var lsbrowsertitle='<?php eT('Label set browser','js'); ?>';
-        var quickaddtitle='<?php eT('Quick-add answers','js'); ?>';
-        var sAssessmentValue='<?php eT('Assessment value','js'); ?>';
-        var duplicateanswercode='<?php eT('Error: You are trying to use duplicate answer codes.','js'); ?>';
-        var strNoLabelSet='<?php eT('There are no label sets which match the survey default language','js'); ?>';
-        var langs='<?php echo implode(';',$anslangs); ?>';
-        var sImageURL ="<?php echo Yii::app()->getConfig('adminimageurl'); ?>";
-        var saveaslabletitle  = '<?php eT('Save as label set','js'); ?>';
-        var lanameurl = '<?php echo Yii::app()->createUrl('/admin/labels/sa/getAllSets'); ?>';
-        var lasaveurl = '<?php echo Yii::app()->createUrl('/admin/labels/sa/ajaxSets'); ?>';
-        var sCheckLabelURL = '<?php echo Yii::app()->createUrl('/admin/questions/sa/ajaxchecklabel'); ?>';
-        var lsdetailurl = '<?php echo Yii::app()->createUrl('/admin/questions/sa/ajaxlabelsetdetails'); ?>';
-        var lspickurl = '<?php echo Yii::app()->createUrl('/admin/questions/sa/ajaxlabelsetpicker'); ?>';
-        var check = true;
-        var lasuccess = '<?php eT('The records have been saved successfully!'); ?>';
-        var lafail = '<?php eT('Sorry, the request failed!'); ?>';
-        var ok = '<?php eT('Ok'); ?>';
-        var cancel = '<?php eT('Cancel'); ?>';
-    </script>
-    <div id='tabs'>
-    <ul>
-        <?php foreach ($anslangs as $anslang)
-            { ?>
-            <li><a href='#tabpage_<?php echo $anslang; ?>'><?php echo getLanguageNameFromCode($anslang, false); ?>
-                    <?php if ($anslang==Survey::model()->findByPk($surveyid)->language) { ?> (<?php eT("Base language"); ?>) <?php } ?></a>
-            </li>
-            <?php } ?>
-    </ul>
+<div id='edit-question-body' class='side-body <?php echo getSideBodyClass(false); ?>'>
+    <h3>
+        <?php echo $pageTitle; ?> <small><em><?php echo $oQuestion->title;?></em> (ID: <?php echo $oQuestion->qid;?>)</small>
+    </h3>
 
-    <?php foreach ($anslangs as $anslang)
-        { ?>
-        <div id='tabpage_<?php echo $anslang; ?>' class='tab-page'>
+    <div class="row">
+        <div class="col-lg-12 content-right">
 
-            <?php for ($scale_id = 0; $scale_id < $scalecount; $scale_id++)
-                {
-                    $position=1;
-                    if ($scalecount>1)
-                    { ?>
-                    <div class='header ui-widget-header' style='margin-top:5px;'><?php echo sprintf(gT("Answer scale %s"),$scale_id+1); ?></div>
-                    <?php } ?>
+            <!-- Result of modal actions (like replace labelset) -->
+            <div id="dialog-result" title="Query Result" style='display:none;' class="alert alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span >&times;</span></button>
+                <span id="dialog-result-content">
+                </span>
+            </div>
+
+            <div id="dialog-duplicate" title="<?php eT('Duplicate label set name'); ?>" style='display:none;' class="alert alert-warning alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span >&times;</span></button>
+                <p>
+                    <?php eT('Sorry, the name you entered for the label set is already in the database. Please select a different name.'); ?>
+                </p>
+            </div>
+
+            <?php echo CHtml::form(array("admin/database"), 'post', array('id'=>$formId, 'name'=>$formName)); ?>
+
+                <input type='hidden' name='sid' value='<?php echo $surveyid; ?>' />
+                <input type='hidden' name='gid' value='<?php echo $gid; ?>' />
+                <input type='hidden' name='qid' value='<?php echo $qid; ?>' />
+
+                <?php if($viewType=='subQuestions'): ?>
+                    <input type='hidden' id='action' name='action' value='updatesubquestions' />
+                <?php elseif($viewType=='answerOptions'): ?>
+                    <input type='hidden' name='action' value='updateansweroptions' />
+                <?php endif; ?>
+
+                <input type='hidden' name='sortorder' value='' />
+                <input type='hidden' id='deletedqids' name='deletedqids' value='' />
+
+                <?php $first=true; ?>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs">
+                    <?php foreach ($anslangs as $i => $anslang):?>
+                        <li role="presentation" <?php if($i==0){echo 'class="active"';}?>>
+                            <a data-toggle="tab" href='#tabpage_<?php echo $anslang; ?>'>
+                                <?php echo getLanguageNameFromCode($anslang, false).($anslang==Survey::model()->findByPk($surveyid)->language ? ' ('.gT("Base language").')':''); ?>
+                            </a>
+                        </li>
+                    <?php endforeach;?>
+                </ul>
+                <?php
+                    $sortorderids='';
+                    $codeids='';
+                ?>
+
+                <!-- Tab content -->
+                <div class="tab-content">
+                    <?php foreach ($anslangs as $i => $anslang):?>
+                        <div id='tabpage_<?php echo $anslang; ?>' class='tab-page tab-pane fade in <?php if($i==0){echo 'active';}?>'>
+                            <?php for ($scale_id = 0; $scale_id < $scalecount; $scale_id++): ?>
+                                <?php
+                                    $result = $results[$anslang][$scale_id];
+                                    $anscount = count($result);
+                                ?>
+
+                                <?php // TODO : check the rendering of XSCALES / Y SCALES ?>
+
+                                <?php // For subQuestions ?>
+                                <?php if($viewType=='subQuestions'): ?>
+                                    <?php $position=0; ?>
+                                    <?php if ($scalecount>1): ?>
+                                        <?php if ($scale_id==0): ?>
+                                            <div class='header ui-widget-header'>
+                                                <?php eT("Y-Scale"); ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class='header ui-widget-header'>
+                                                <?php eT("X-Scale"); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+
+                                <?php // For answers ?>
+                                <?php elseif($viewType=='answerOptions'): ?>
+                                    <?php $position=1; ?>
+                                    <?php  if ($scalecount>1): ?>
+                                        <div class='header ui-widget-header' style='margin-top:5px;'>
+                                            <?php echo sprintf(gT("Answer scale %s"),$scale_id+1); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+
+                                <!-- Answers/Subquestions Table -->
+                                <table class='answertable table table-responsive' id='<?php echo $tableId[$anslang][$scale_id]; ?>' data-scaleid='<?php echo $scale_id; ?>'>
+
+                                    <!-- Headers -->
+                                    <thead>
+                                        <tr>
+                                            <th class="col-md-1">
+                                                <?php if( $first && $activated != 'Y'): ?>
+                                                    <?php eT("Position");?>
+                                                <?php else: ?>
+                                                    &nbsp;
+                                                <?php endif; ?>
+                                            </th>
+                                            <th class='col-md-1'><?php eT("Code"); ?></th>
+
+                                            <!-- subQuestions headers -->
+                                            <?php if($viewType=='subQuestions'): ?>
+                                                <th>
+                                                    <?php eT("Subquestion"); ?>
+                                                </th>
+                                                <?php if ($first): ?>
+                                                    <th id='rel-eq-th' class='col-md-1'>
+                                                        <?php eT("Relevance equation"); ?>
+                                                    </th>
+                                                    <th class="col-md-1">
+                                                        <?php eT("Action"); ?>
+                                                    </th>
+                                                <?php endif; ?>
+
+                                            <!-- answer Options header-->
+                                            <?php elseif($viewType=='answerOptions'): ?>
+                                                <?php if ($assessmentvisible): ?>
+                                                    <th class='col-md-1'>
+                                                        <?php eT("Assessment value"); ?>
+                                                    </th>
+                                                <?php else: ?>
+                                                    <th style='display:none;'>
+                                                        &nbsp;
+                                                    </th>
+                                                <?php endif; ?>
+
+                                                <th class='col-md-8'>
+                                                    <?php eT("Answer option"); ?>
+                                                </th>
+
+                                                <th class='col-md-1'>
+                                                    <?php if( $first): ?>
+                                                        <?php eT("Actions"); ?>
+                                                    <?php endif;?>
+                                                </th>
+                                            <?php endif; ?>
+                                        </tr>
+                                    </thead>
+
+                                    <!-- Body -->
+                                    <tbody id="rowcontainer">
+                                        <?php foreach ($result as $row): ?>
+
+                                            <!-- Line tag -->
+                                            <?php if($viewType=='subQuestions'): ?>
+                                                <?php $this->renderPartial('/admin/survey/Question/subquestionsAndAnswers/_subquestion', array(
+                                                    'position'  => $position,
+                                                    'scale_id'  => $scale_id,
+                                                    'activated' => $activated,
+                                                    'first'     => $first,
+                                                    'surveyid'  => $surveyid,
+                                                    'gid'       => $gid,
+                                                    'qid'       => $row->qid,
+                                                    'language'  => $row->language,
+                                                    'title'     => $row->title,
+                                                    'question'  => $row->question,
+                                                    'relevance' => $row->relevance,
+                                                    'oldCode'   => true,
+                                                ));?>
+
+                                            <?php elseif($viewType=='answerOptions'):?>
+                                                <?php $this->renderPartial('/admin/survey/Question/subquestionsAndAnswers/_answer_option', array(
+                                                    'position'          => $position,
+                                                    'first'             => $first,
+                                                    'assessmentvisible' => $assessmentvisible,
+                                                    'scale_id'          => $scale_id,
+                                                    'title'             => $row->code,
+                                                    'surveyid'          => $surveyid,
+                                                    'gid'               => $gid,
+                                                    'qid'               => $qid,
+                                                    'language'          => $row->language,
+                                                    'assessment_value'  => $row->assessment_value,
+                                                    'sortorder'         => $row->sortorder,
+                                                    'answer'            => $row->answer,
+                                                    'oldCode'   => true,
+                                                ));?>
+
+                                            <?php endif; ?>
+
+                                            <?php $position++; ?>
+
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+
+                                <div class="action-buttons">
+                                    <?php if($viewType=='subQuestions'): ?>
+                                        <?php
+                                            $disabled = ($activated == 'Y')?$disabled="disabled='disabled'":'';
+                                        ?>
+                                    <?php elseif($viewType=='answerOptions'): ?>
+                                        <?php if ($first): ?>
+                                            <input type='hidden' id='answercount_<?php echo $scale_id; ?>' name='answercount_<?php echo $scale_id; ?>' value='<?php echo $anscount; ?>' />
+                                            <?php $disabled=""; ?>
+                                        <?php endif; ?>
+                                        <br/>
+                                    <?php endif;?>
+
+                                    <button <?php echo $disabled; ?>  id='btnlsbrowser_<?php echo $anslang; ?>_<?php echo $scale_id; ?>' data-scale-id="<?php echo $scale_id; ?>" class='btnlsbrowser btn btn-default' type='button'    data-toggle="modal" data-target="#labelsetbrowserModal">
+                                        <?php eT('Predefined label sets...'); ?>
+                                    </button>
+
+                                    <button <?php echo $disabled; ?>  id='btnquickadd_<?php echo $anslang; ?>_<?php echo $scale_id; ?>' data-scale-id="<?php echo $scale_id; ?>" class='btn btn-default btnquickadd' type='button'  data-toggle="modal" data-target="#quickaddModal" data-scale-id="<?php echo $scale_id; ?>">
+                                        <?php eT('Quick add...'); ?>
+                                    </button>
 
 
-                <table class='answertable' id='answers_<?php echo $anslang; ?>_<?php echo $scale_id; ?>'>
-                    <thead>
-                        <tr>
-                            <th>&nbsp;</th>
-                            <th><?php eT("Code"); ?></th>
-                            <?php if ($assessmentvisible)
-                                { ?>
-                                <th><?php eT("Assessment value"); ?>
-                                <?php }
-                                else
-                                { ?>
-                                <th style='display:none;'>&nbsp;
-                                    <?php } ?>
+                                    <?php if(Permission::model()->hasGlobalPermission('superadmin','read') || Permission::model()->hasGlobalPermission('labelsets','create')): ?>
+                                        <button class='bthsaveaslabel btn btn-default' id='bthsaveaslabel_<?php echo $scale_id; ?>' type='button' data-toggle="modal" data-target="#saveaslabelModal">
+                                            <?php eT('Save as label set'); ?>
+                                        </button>
+                                    <?php endif; ?>
 
-                            </th>
-                            <th><?php eT("Answer option"); ?></th>
-                            <th><?php eT("Actions"); ?></th>
-                        </tr></thead>
-                    <tbody>
-                    <?php $alternate=true;
-
-                        $query = "SELECT * FROM {{answers}} WHERE qid='{$qid}' AND language='{$anslang}' and scale_id=$scale_id ORDER BY sortorder, code";
-                        $result = dbExecuteAssoc($query);
-                        $aResults= $result->readAll();
-                        $anscount = count($aResults);
-
-                        foreach ($aResults as $row)
-                        {
-                            $row['code'] = htmlspecialchars($row['code']);
-                            $row['answer']=htmlspecialchars($row['answer']);
-                        ?>
-                        <tr class='row_<?php echo $position; ?><?php if ($alternate==true){ ?> highlight<?php } ?><?php $alternate=!$alternate; ?>'><td>
-                                <?php if ($first)
-                                    { ?>
-                                    <img class='handle' src='<?php echo $sImageURL; ?>handle.png' alt=''/></td>
-                                    <td><input type='hidden' class='oldcode' id='oldcode_<?php echo $position; ?>_<?php echo $scale_id; ?>' name='oldcode_<?php echo $position; ?>_<?php echo $scale_id; ?>' value="<?php echo $row['code']; ?>" /><input type='text' class='code' id='code_<?php echo $position; ?>_<?php echo $scale_id; ?>' name='code_<?php echo $position; ?>_<?php echo $scale_id; ?>' value="<?php echo $row['code']; ?>" maxlength='5' size='5' required
-                                        onkeypress="return goodchars(event,'1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWZYZ_')"
-                                        />
-                                    <?php }
-                                    else
-                                    { ?>
-                                    &nbsp;</td><td><?php echo $row['code']; ?>
-
-                                    <?php } ?>
-
-                            </td>
-                            <td
-
-                                <?php if ($assessmentvisible && $first)
-                                    { ?>
-                                    ><input type='text' class='assessment' id='assessment_<?php echo $position; ?>_<?php echo $scale_id; ?>' name='assessment_<?php echo $position; ?>_<?php echo $scale_id; ?>' value="<?php echo $row['assessment_value']; ?>" maxlength='5' size='5'
-                                        onkeypress="return goodchars(event,'-1234567890')"
-                                        />
-                                    <?php }
-                                    elseif ( $first)
-                                    { ?>
-                                    style='display:none;'><input type='hidden' class='assessment' id='assessment_<?php echo $position; ?>_<?php echo $scale_id; ?>' name='assessment_<?php echo $position; ?>_<?php echo $scale_id; ?>' value="<?php echo $row['assessment_value']; ?>"
-                                        onkeypress="return goodchars(event,'-1234567890')"
-                                        />
-                                    <?php }
-                                    elseif ($assessmentvisible)
-                                    { ?>
-                                    ><?php echo $row['assessment_value']; ?>
-                                    <?php }
-                                    else
-                                    { ?>
-                                    style='display:none;'>
-                                    <?php } ?>
-
-                            </td><td>
-                                <input type='text' class='answer' id='answer_<?php echo $row['language']; ?>_<?php echo $row['sortorder']; ?>_<?php echo $scale_id; ?>' name='answer_<?php echo $row['language']; ?>_<?php echo $row['sortorder']; ?>_<?php echo $scale_id; ?>' size='100' placeholder='<?php eT("Some example answer option","js") ?>' value="<?php echo $row['answer']; ?>" />
-                                <?php echo  getEditor("editanswer","answer_".$row['language']."_{$row['sortorder']}_{$scale_id}", "[".gT("Answer:", "js")."](".$row['language'].")",$surveyid,$gid,$qid,'editanswer'); ?>
+                                </div>
+                                <?php $position=sprintf("%05d", $position); ?>
+                            <?php endfor;?>
+                        </div>
+                        <?php $first=false; ?>
+                    <?php endforeach; ?>
 
 
-                            </td><td><?php if ($first) { ?>
-                                <img src='<?php echo $sImageURL; ?>addanswer.png' class='btnaddanswer' alt='<?php eT("Insert a new answer option after this one") ?>' />
-                                <img src='<?php echo $sImageURL; ?>deleteanswer.png' class='btndelanswer' alt='<?php eT("Delete this answer option") ?>' />
-                                <?php } ?>
-                            </td></tr>
-                        <?php $position++;
-                    } ?>
-                </table>
-                <?php if ($first)
-                    { ?>
-                    <input type='hidden' id='answercount_<?php echo $scale_id; ?>' name='answercount_<?php echo $scale_id; ?>' value='<?php echo $anscount; ?>' />
-                    <?php } ?>
-                <div class="action-buttons">
-                    <button id='btnlsbrowser_<?php echo $anslang; ?>_<?php echo $scale_id; ?>' class='btnlsbrowser' type='button'><?php eT('Predefined label sets...'); ?></button>
-                    <button id='btnquickadd_<?php echo $anslang; ?>_<?php echo $scale_id; ?>' class='btnquickadd' type='button'><?php eT('Quick add...'); ?></button>
+                    <!-- Modals -->
+                    <?php $this->renderPartial("./survey/Question/question_subviews/_modals", array()); ?>
 
-                    <?php if(Permission::model()->hasGlobalPermission('superadmin','read') || Permission::model()->hasGlobalPermission('labelsets','create')) { //){ ?>
-                    <button class='bthsaveaslabel' id='bthsaveaslabel_<?php echo $scale_id; ?>' type='button'><?php eT('Save as label set'); ?></button>
+                    <p>
+                        <input type='submit' class="hidden" id='saveallbtn_<?php echo $anslang; ?>' name='method' value='<?php eT("Save changes"); ?>' />
+                        <!-- For javascript -->
+                        <input
+                            type="hidden"
+                            id="add-input-javascript-datas"
+                            data-url="<?php echo App()->createUrl('/admin/questions/sa/getSubquestionRowForAllLanguages/');?>"
+                            data-quickurl="<?php echo App()->createUrl(
+                                '/admin/questions/',
+                                array(
+                                    'sa' => 'getSubquestionRowQuickAdd',
+                                    'surveyid' => $surveyid,
+                                    'gid' => $gid
+                                )
+                            );?>"
+                            data-assessmentvisible="<?php echo (isset($assessmentvisible) && $assessmentvisible==true ? "1" : "0"); ?>"
+                            data-errormessage="An error occured while processing the ajax request."
+                            data-surveyid="<?php echo $surveyid;?>"
+                            data-languages='<?php echo json_encode(Survey::model()->findByPk($surveyid)->getAllLanguages());?>'
+                            data-gid="<?php echo $gid;?>"
+                            data-qid="<?php echo $qid;?>"
+                            data-scale-id="<?php echo $scale_id-1; // -1 : because it's incremented via <  ?>"
+                        />
+                    </p>
 
-                   <?php } ?>
                 </div>
+                <input type='hidden' id='bFullPOST' name='bFullPOST' value='1' />
 
-                <?php }
-
-                $position=sprintf("%05d", $position);
-
-                $first=false; ?>
+            </form>
         </div>
-        <?php } ?>
-    <div id='labelsetbrowser' class='labelsets-update' style='display:none;'><div style='float:left;width:260px;'>
-        <label for='labelsets'><?php eT('Available label sets:'); ?></label>
-        <select id='labelsets' size='10' style='width:250px;'><option>&nbsp;</option></select>
-        <p class='button-list'>
-        <button id='btnlsreplace' type='button'><?php eT('Replace'); ?></button>
-        <button id='btnlsinsert' type='button'><?php eT('Add'); ?></button>
-        <button id='btncancel' type='button'><?php eT('Cancel'); ?></button>
-        </p>
-        </div>
-
-        <div id='labelsetpreview' style='float:right;width:500px;'></div>
-        </div>
-        <div id='quickadd' class='labelsets-update' style='display:none;'><div style='float:left;'>
-        <label for='quickaddarea'><?php eT('Enter your answers:'); ?></label>
-        <textarea id='quickaddarea' class='tipme' title='<?php eT('Enter one answer per line. You can provide a code by separating code and answer text with a semikolon or tab. For multilingual surveys you add the translation(s) on the same line separated with a semikolon or tab.'); ?>' cols='100' rows='30' style='width:570px;'></textarea>
-        <p class='button-list'>
-        <button id='btnqareplace' type='button'><?php eT('Replace'); ?></button>
-        <button id='btnqainsert' type='button'><?php eT('Add'); ?></button>
-        <button id='btnqacancel' type='button'><?php eT('Cancel'); ?></button>
-        </p>
-        </div>
-        </div>
-        <div id="saveaslabel" style='display:none;'>
-            <p>
-                <input type="radio" name="savelabeloption" id="newlabel">
-                <label for="newlabel"><?php eT('New label set'); ?></label>
-            </p>
-            <p>
-                <input type="radio" name="savelabeloption" id="replacelabel">
-                <label for="replacelabel"><?php eT('Replace existing label set'); ?>
-            </p>
-            <p class='button-list'>
-                <button id='btnsave' type='button'><?php eT('Save'); ?></button>
-                <button id='btnlacancel' type='button'><?php eT('Cancel'); ?></button>
-            </p>
-        </div>
-
-        <div id="dialog-confirm-replace" title="<?php eT('Replace label set?'); ?>" style='display:none;'>
-        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span><span id='strReplaceMessage'></span></p>
-        </div>
-
-        <div id="dialog-duplicate" title="<?php eT('Duplicate label set name'); ?>" style='display:none;'>
-        <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span><?php eT('Sorry, the name you entered for the label set is already in the database. Please select a different name.'); ?></p>
-        </div>
-
-        <div id="dialog-result" title="Query Result" style='display:none;'>
-
-        </div>
-
-        <p><input type='submit' id='saveallbtn_<?php echo $anslang; ?>' name='method' value='<?php eT("Save changes"); ?>' />
     </div>
-    <input type='hidden' id='bFullPOST' name='bFullPOST' value='1' />
-</form>
+</div>

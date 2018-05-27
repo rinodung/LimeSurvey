@@ -73,6 +73,7 @@
  * @property CPhpMessageSource $coreMessages The core message translations.
  * @property CMessageSource $messages The application message translations.
  * @property CHttpRequest $request The request component.
+ * @property CFormatter $format The formatter component.
  * @property CUrlManager $urlManager The URL manager component.
  * @property CController $controller The currently active controller. Null is returned in this base class.
  * @property string $baseUrl The relative URL for the application.
@@ -132,7 +133,7 @@ abstract class CApplication extends CModule
 	{
 		Yii::setApplication($this);
 
-		// set basePath at early as possible to avoid trouble
+		// set basePath as early as possible to avoid trouble
 		if(is_string($config))
 			$config=require($config);
 		if(isset($config['basePath']))
@@ -399,12 +400,11 @@ abstract class CApplication extends CModule
 	/**
 	 * Returns the locale instance.
 	 * @param string $localeID the locale ID (e.g. en_US). If null, the {@link getLanguage application language ID} will be used.
-	 * @return an instance of CLocale
+	 * @return CLocale an instance of CLocale
 	 */
 	public function getLocale($localeID=null)
 	{
-		$class=$this->localeClass;
-		return $class::getInstance($localeID===null?$this->getLanguage():$localeID);
+		return call_user_func_array(array($this->localeClass, 'getInstance'),array($localeID===null?$this->getLanguage():$localeID));
 	}
 
 	/**
@@ -414,8 +414,10 @@ abstract class CApplication extends CModule
 	 */
 	public function getLocaleDataPath()
 	{
-		$class=$this->localeClass;
-		return $class::$dataPath===null ? Yii::getPathOfAlias('system.i18n.data') : $class::$dataPath;
+		$vars=get_class_vars($this->localeClass);
+		if(empty($vars['dataPath']))
+			return Yii::getPathOfAlias('system.i18n.data');
+		return $vars['dataPath'];
 	}
 
 	/**
@@ -425,8 +427,8 @@ abstract class CApplication extends CModule
 	 */
 	public function setLocaleDataPath($value)
 	{
-		$class=$this->localeClass;
-		$class::$dataPath=$value;
+		$property=new ReflectionProperty($this->localeClass,'dataPath');
+		$property->setValue($value);
 	}
 
 	/**
@@ -530,6 +532,15 @@ abstract class CApplication extends CModule
 	}
 
 	/**
+	 * Returns the formatter component.
+	 * @return CFormatter the formatter component
+	 */
+	public function getFormat()
+	{
+		return $this->getComponent('format');
+	}
+
+	/**
 	 * @return CController the currently active controller. Null is returned in this base class.
 	 * @since 1.1.8
 	 */
@@ -561,7 +572,7 @@ abstract class CApplication extends CModule
 	public function createAbsoluteUrl($route,$params=array(),$schema='',$ampersand='&')
 	{
 		$url=$this->createUrl($route,$params,$ampersand);
-		if(strpos($url,'http')===0)
+		if(strpos($url,'http')===0 || strpos($url,'//')===0)
 			return $url;
 		else
 			return $this->getRequest()->getHostInfo($schema).$url;

@@ -27,6 +27,9 @@
  * A {@link CCaptchaValidator} may be used to validate that the user enters
  * a verification code matching the code displayed in the CAPTCHA image.
  *
+ * When combining CCaptcha with CActiveForm or CForm, make sure ajaxValidation is disabled. Performing ajax validation causes
+ * your Captcha to be refreshed, rendering the code invalid on the next validation attempt.
+ *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @package system.web.widgets.captcha
  * @since 1.0
@@ -125,7 +128,10 @@ class CCaptcha extends CWidget
 				$html=CHtml::button($label, $options);
 			else
 				$html=CHtml::link($label, $url, $options);
-			$js="jQuery('#$id').after(".CJSON::encode($html).");";
+
+			$js= "if(jQuery('#$id').next('input').length == 0){"
+			 . "jQuery('#$id').after(".CJSON::encode($html).");
+			 }";
 			$selector="#$buttonID";
 		}
 
